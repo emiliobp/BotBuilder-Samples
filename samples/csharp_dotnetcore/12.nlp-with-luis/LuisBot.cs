@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder;
@@ -68,7 +70,38 @@ namespace Microsoft.BotBuilderSamples
                 var topIntent = recognizerResult?.GetTopScoringIntent();
                 if (topIntent != null && topIntent.HasValue && topIntent.Value.intent != "None")
                 {
+                    var NumBoletos = "";
+                    var Origen = "";
+                    var Destino = "";
+
                     await turnContext.SendActivityAsync($"==>LUIS Top Scoring Intent: {topIntent.Value.intent}, Score: {topIntent.Value.score}\n");
+                    if (topIntent.Value.intent == "Reservacion")
+                    {
+                        dynamic dynObj = JsonConvert.DeserializeObject(recognizerResult.Entities?.ToString());
+
+                        if (dynObj.NumBoletos != null)
+                        {
+                            foreach (var data in dynObj.NumBoletos)
+                            {
+                             NumBoletos = data;
+                            }
+                        }
+                        if (dynObj.Origen != null)
+                        {
+                            foreach (var data1 in dynObj.Origen)
+                            {
+                                Origen = data1;
+                            }
+                        }
+                        if (dynObj.Destino != null)
+                        {
+                            foreach (var data2 in dynObj.Destino)
+                            {
+                                Destino = data2;
+                            }
+                        }
+                    }
+                    await turnContext.SendActivityAsync($"==>LUIS Info for {NumBoletos} tickets\tfrom {Origen} to {Destino}\n");
                 }
                 else
                 {
@@ -79,7 +112,7 @@ namespace Microsoft.BotBuilderSamples
                             Try typing 'Add Event' or 'Show me tomorrow'.";
                     await turnContext.SendActivityAsync(msg);
                 }
-
+                /**
                 // See if LUIS found and used an entity to determine user intent.
                 var entityFound = ParseLuisForEntities(recognizerResult);
 
@@ -91,8 +124,8 @@ namespace Microsoft.BotBuilderSamples
                 else
                 {
                     await turnContext.SendActivityAsync($"==>No LUIS Entities Found.\n");
-                }
-            }
+                } */
+            } 
             else if (turnContext.Activity.Type == ActivityTypes.ConversationUpdate)
             {
                 // Send a welcome message to the user and tell them what actions they may perform to use this bot
