@@ -5,6 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Schema;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
 
 namespace Microsoft.BotBuilderSamples
 {
@@ -76,6 +79,19 @@ namespace Microsoft.BotBuilderSamples
                             Try typing 'Add Event' or 'Show me tomorrow'.";
                     await turnContext.SendActivityAsync(msg);
                 }
+
+                // See if LUIS found and used an entity to determine user intent.
+                var entityFound = ParseLuisForEntities(recognizerResult);
+
+                // Inform the user if LUIS used an entity.
+                if (entityFound.ToString() != string.Empty)
+                {
+                    await turnContext.SendActivityAsync($"==>LUIS Entity Found: {entityFound}\n");
+                }
+                else
+                {
+                    await turnContext.SendActivityAsync($"==>No LUIS Entities Found.\n");
+                }
             }
             else if (turnContext.Activity.Type == ActivityTypes.ConversationUpdate)
             {
@@ -86,8 +102,71 @@ namespace Microsoft.BotBuilderSamples
             {
                 await turnContext.SendActivityAsync($"{turnContext.Activity.Type} event detected", cancellationToken: cancellationToken);
             }
+
         }
 
+        public string ParseLuisForEntities(RecognizerResult recognizerResult)
+        {
+            var result = string.Empty;
+
+            // recognizerResult.Entities returns type JObject.
+            foreach (var entity in recognizerResult.Entities)
+            {
+                // Parse JObject for a known entity types: Origen, Destino, and NumBoletos.
+                var origenFound = JObject.Parse(entity.Value.ToString())["Origen"];
+                var destinoFound = JObject.Parse(entity.Value.ToString())["Destino"];
+                var numBolFound = JObject.Parse(entity.Value.ToString())["NumBoletos"];
+
+                // We will return info on the first entity found.
+                if (origenFound != null)
+                {
+                    // use JsonConvert to convert entity.Value to a dynamic object.
+                    dynamic o = JsonConvert.DeserializeObject<dynamic>(entity.Value.ToString());
+                    if (o.Origen[0] != null)
+                    {
+                        // Find and return the entity type and score.
+                        var entType = o.Origen[0].type;
+                        var entScore = o.Origen[0].score;
+                        result = "Entity: " + entType + ", Score: " + entScore + ".";
+
+                        return result;
+                    }
+                }
+
+                if (destinoFound != null)
+                {
+                    // use JsonConvert to convert entity.Value to a dynamic object.
+                    dynamic o = JsonConvert.DeserializeObject<dynamic>(entity.Value.ToString());
+                    if (o.Destino[0] != null)
+                    {
+                        // Find and return the entity type and score.
+                        var entType = o.Destino[0].type;
+                        var entScore = o.Destino[0].score;
+                        result = "Entity: " + entType + ", Score: " + entScore + ".";
+
+                        return result;
+                    }
+                }
+
+                if (numBolFound != null)
+                {
+                    // use JsonConvert to convert entity.Value to a dynamic object.
+                    dynamic o = JsonConvert.DeserializeObject<dynamic>(entity.Value.ToString());
+                    if (o.NumBoletos[0] != null)
+                    {
+                        // Find and return the entity type and score.
+                        var entType = o.NumBoletos[0].type;
+                        var entScore = o.NumBoletos[0].score;
+                        result = "Entity: " + entType + ", Score: " + entScore + ".";
+
+                        return result;
+                    }
+                }
+            }
+
+            // No entities were found, empty string returned.
+            return result;
+        }
         /// <summary>
         /// On a conversation update activity sent to the bot, the bot will
         /// send a message to the any new user(s) that were added.

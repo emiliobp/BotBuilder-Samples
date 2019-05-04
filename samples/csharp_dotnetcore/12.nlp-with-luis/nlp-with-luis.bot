@@ -9,16 +9,16 @@
             "appPassword": "",
             "id": "166"
         },
-        {
-            "type": "luis",
-            "name": "",
-            "appId": "",
-            "authoringKey": "",
-            "subscriptionKey": "",
-            "version": "0.1",
-            "region": "",
-            "id": "34"
-        }
+      {
+        "type": "luis",
+        "name": "LuisBot",
+        "appId": "dd67d4f2-9e25-446e-a394-2982b2e2a0ed",
+        "authoringKey": "311c1bc145ce4ca38e91e780ac6f58d8",
+        "subscriptionKey": "",
+        "version": "0.1",
+        "region": "westus",
+        "id": "34"
+      }
     ],
     "padlock": "",
     "version": "2.0"
